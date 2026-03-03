@@ -1629,6 +1629,11 @@ export namespace LogicFlow {
     rotatable?: boolean // 节点是否可旋转
     resizable?: boolean // 节点是否可缩放
 
+    /**
+     * 用户自定义方法，这些方法会被绑定到节点模型实例上
+     */
+    methods?: Record<string, (...args: any[]) => any>
+
     [key: string]: any
   }
 

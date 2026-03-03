@@ -876,7 +876,12 @@ export class GraphModel {
     eventType: EventType = EventType.NODE_ADD,
     event?: MouseEvent,
   ) {
+    // 保留用户自定义方法，因为 formatData 使用 JSON 序列化会丢失函数
+    const { methods } = nodeConfig
     const originNodeData = formatData(nodeConfig)
+    if (methods) {
+      originNodeData.methods = methods
+    }
     // 添加节点的时候，如果这个节点 id 已经存在，则采用新 id
     const { id } = originNodeData
     if (id && this.nodesMap[id]) {
