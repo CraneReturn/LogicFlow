@@ -29,10 +29,16 @@ export function normalizePolygon(
   if (!points) return []
 
   // 计算边界框
-  const minX = Math.min(...points.map((p) => p[0]))
-  const maxX = Math.max(...points.map((p) => p[0]))
-  const minY = Math.min(...points.map((p) => p[1]))
-  const maxY = Math.max(...points.map((p) => p[1]))
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+  for (const [px, py] of points) {
+    if (px < minX) minX = px
+    if (px > maxX) maxX = px
+    if (py < minY) minY = py
+    if (py > maxY) maxY = py
+  }
 
   // 平移至原点
   const dx = -minX
