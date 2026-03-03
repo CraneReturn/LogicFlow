@@ -205,6 +205,16 @@ export class BaseNodeModel<P extends PropertiesType = PropertiesType>
     // TODO: 确认 constructor 中赋值 properties 是否必要，此处将 NodeConfig 中所有属性赋值给 this，包括 rotate、rotatable，resizable 等
     assign(this, pickNodeConfig(data))
 
+    // 将用户传入的自定义方法绑定到节点模型实例上
+    if (data.methods && typeof data.methods === 'object') {
+      const methods = data.methods
+      Object.keys(methods).forEach((methodName) => {
+        if (typeof methods[methodName] === 'function') {
+          ;(this as any)[methodName] = methods[methodName].bind(this)
+        }
+      })
+    }
+
     const { overlapMode, eventCenter } = this.graphModel
     this.updateZIndexByOverlap(overlapMode, data.zIndex || getZIndex())
     eventCenter.on('overlap:change', (data) => {

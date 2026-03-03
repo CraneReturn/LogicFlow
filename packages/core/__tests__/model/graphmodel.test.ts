@@ -84,4 +84,26 @@ describe('graphmodel', () => {
     )
     expect(originNode.text.value).toEqual(newNode3.text.value)
   })
+
+  test('addNode with user-defined methods', () => {
+    const nodeModel = lf.addNode({
+      type: 'rect',
+      x: 200,
+      y: 200,
+      methods: {
+        getLabel() {
+          return `node-${(this as any).id}`
+        },
+        double(n: number) {
+          return n * 2
+        },
+      },
+    })
+
+    expect(typeof (nodeModel as any).getLabel).toBe('function')
+    expect(typeof (nodeModel as any).double).toBe('function')
+    // method is bound to the node model instance, so `this` refers to nodeModel
+    expect((nodeModel as any).getLabel()).toBe(`node-${nodeModel.id}`)
+    expect((nodeModel as any).double(5)).toBe(10)
+  })
 })
