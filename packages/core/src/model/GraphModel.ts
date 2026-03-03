@@ -1,7 +1,5 @@
 import {
   assign,
-  find,
-  forEach,
   map,
   merge,
   isBoolean,
@@ -358,7 +356,7 @@ export class GraphModel {
     ignoreHideElement = false,
   ) {
     const areaElements: LogicFlow.GraphElement[] = []
-    forEach([...this.nodes, ...this.edges], (element) => {
+    const checkElement = (element: BaseNodeModel | BaseEdgeModel) => {
       const isElementInArea = this.isElementInArea(
         element,
         leftTopPoint,
@@ -369,7 +367,9 @@ export class GraphModel {
       if ((!ignoreHideElement || element.visible) && isElementInArea) {
         areaElements.push(element)
       }
-    })
+    }
+    this.nodes.forEach(checkElement)
+    this.edges.forEach(checkElement)
     return areaElements
   }
 
@@ -858,6 +858,8 @@ export class GraphModel {
     this.deleteEdgeBySource(nodeId)
     this.deleteEdgeByTarget(nodeId)
     this.nodes.splice(this.nodesMap[nodeId].index, 1)
+    this.nodeModelMap.delete(nodeId)
+    this.elementsModelMap.delete(nodeId)
     this.eventCenter.emit(EventType.NODE_DELETE, {
       data: nodeData,
       model: nodeModel,
@@ -1118,7 +1120,10 @@ export class GraphModel {
         this.edges[i].sourceNodeId === sourceNodeId &&
         this.edges[i].targetNodeId === targetNodeId
       ) {
-        const edgeData = this.edges[i].getData()
+        const edgeModel = this.edges[i]
+        const edgeData = edgeModel.getData()
+        this.edgeModelMap.delete(edgeModel.id)
+        this.elementsModelMap.delete(edgeModel.id)
         this.edges.splice(i, 1)
         i--
         this.eventCenter.emit(EventType.EDGE_DELETE, { data: edgeData })
@@ -1138,6 +1143,8 @@ export class GraphModel {
     const idx = this.edgesMap[id].index
     const edgeData = this.edgesMap[id].model.getData()
     this.edges.splice(idx, 1)
+    this.edgeModelMap.delete(id)
+    this.elementsModelMap.delete(id)
     this.eventCenter.emit(EventType.EDGE_DELETE, { data: edgeData })
   }
 
@@ -1148,7 +1155,10 @@ export class GraphModel {
   deleteEdgeBySource(sourceNodeId: string) {
     for (let i = 0; i < this.edges.length; i++) {
       if (this.edges[i].sourceNodeId === sourceNodeId) {
-        const edgeData = this.edges[i].getData()
+        const edgeModel = this.edges[i]
+        const edgeData = edgeModel.getData()
+        this.edgeModelMap.delete(edgeModel.id)
+        this.elementsModelMap.delete(edgeModel.id)
         this.edges.splice(i, 1)
         i--
         this.eventCenter.emit(EventType.EDGE_DELETE, { data: edgeData })
@@ -1163,7 +1173,10 @@ export class GraphModel {
   deleteEdgeByTarget(targetNodeId: string) {
     for (let i = 0; i < this.edges.length; i++) {
       if (this.edges[i].targetNodeId === targetNodeId) {
-        const edgeData = this.edges[i].getData()
+        const edgeModel = this.edges[i]
+        const edgeData = edgeModel.getData()
+        this.edgeModelMap.delete(edgeModel.id)
+        this.elementsModelMap.delete(edgeModel.id)
         this.edges.splice(i, 1)
         i--
         this.eventCenter.emit(EventType.EDGE_DELETE, { data: edgeData })
@@ -1205,10 +1218,7 @@ export class GraphModel {
    */
   @action
   updateText(id: string, value: string) {
-    const element = find(
-      [...this.nodes, ...this.edges],
-      (item) => item.id === id,
-    )
+    const element = this.getElement(id)
     element?.updateText(value)
   }
 
@@ -1653,24 +1663,23 @@ export class GraphModel {
    */
   getVirtualRectSize(): GraphModel.VirtualRectProps {
     const { nodes } = this
-    let nodesX: number[] = []
-    let nodesY: number[] = []
+    let minX = Infinity
+    let maxX = -Infinity
+    let minY = Infinity
+    let maxY = -Infinity
     // 获取所有节点组成的x，y轴最大最小值，这里考虑了图形的长宽和边框
     nodes.forEach((node) => {
       const { x, y, width, height } = node
       const { strokeWidth = 0 } = node.getNodeStyle()
-      const maxX = x + width / 2 + strokeWidth
-      const minX = x - width / 2 - strokeWidth
-      const maxY = y + height / 2 + strokeWidth
-      const minY = y - height / 2 - strokeWidth
-      nodesX = nodesX.concat([maxX, minX].filter((num) => !Number.isNaN(num)))
-      nodesY = nodesY.concat([maxY, minY].filter((num) => !Number.isNaN(num)))
+      const nodeMaxX = x + width / 2 + strokeWidth
+      const nodeMinX = x - width / 2 - strokeWidth
+      const nodeMaxY = y + height / 2 + strokeWidth
+      const nodeMinY = y - height / 2 - strokeWidth
+      if (!Number.isNaN(nodeMaxX)) maxX = Math.max(maxX, nodeMaxX)
+      if (!Number.isNaN(nodeMinX)) minX = Math.min(minX, nodeMinX)
+      if (!Number.isNaN(nodeMaxY)) maxY = Math.max(maxY, nodeMaxY)
+      if (!Number.isNaN(nodeMinY)) minY = Math.min(minY, nodeMinY)
     })
-
-    const minX = Math.min(...nodesX)
-    const maxX = Math.max(...nodesX)
-    const minY = Math.min(...nodesY)
-    const maxY = Math.max(...nodesY)
 
     const virtualRectWidth = maxX - minX || 0
     const virtualRectHeight = maxY - minY || 0
