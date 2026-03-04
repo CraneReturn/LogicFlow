@@ -226,11 +226,13 @@ test('transform data from json to xml', () => {
   })
 })
 
-test('sanitize xml attributes with special characters', () => {
+test('adapterXmlIn can parse xml with special characters in attributes', () => {
   const lf = {}
   const adapter = new BpmnXmlAdapter({ lf })
-  const xml = `<bpmn:userTask name="A&B<C>D" data='x&y<z>w' />`
-  expect(adapter.sanitizeXmlAttributes(xml)).toBe(
-    `<bpmn:userTask name="A&amp;B&lt;C&gt;D" data='x&amp;y&lt;z&gt;w' />`,
-  )
+  adapter.adapterIn = jest.fn((json) => json)
+  const xml =
+    '<bpmn:definitions xmlns:bpmn="http://example.com"><bpmn:userTask name="A&B<C>D" data=\'x&y<z>w\' /></bpmn:definitions>'
+  const result = adapter.adapterXmlIn(xml)
+  expect(result['bpmn:definitions']['bpmn:userTask']['-name']).toBe('A&B<C>D')
+  expect(result['bpmn:definitions']['bpmn:userTask']['-data']).toBe('x&y<z>w')
 })

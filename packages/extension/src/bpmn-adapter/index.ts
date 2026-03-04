@@ -790,13 +790,18 @@ class BpmnXmlAdapter extends BpmnAdapter {
    * 注意：不影响已合法的实体（如 &amp;），仅在属性值中生效，不修改标签与节点内容。
    */
   private sanitizeXmlAttributes(xml: string): string {
-    return xml.replace(/(\b[\w:-]+\b)=(['"])(.*?)\2/g, (_, key, quote, val) => {
-      const safe = val
-        .replace(/&(?!#?\w+;)/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-      return `${key}=${quote}${safe}${quote}`
-    })
+    return xml.replace(
+      /(\b[\w:-]+\b)=(?:"([^"]*)"|'([^']*)')/g,
+      (_, key, doubleQuotedVal, singleQuotedVal) => {
+        const quote = doubleQuotedVal !== undefined ? '"' : "'"
+        const val = doubleQuotedVal ?? singleQuotedVal ?? ''
+        const safe = val
+          .replace(/&(?!#?\w+;)/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+        return `${key}=${quote}${safe}${quote}`
+      },
+    )
   }
 
   /**
