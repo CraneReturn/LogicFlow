@@ -1,4 +1,4 @@
-import { toXmlJson, toNormalJson } from '../src/bpmn-adapter/index'
+import { BpmnXmlAdapter, toXmlJson, toNormalJson } from '../src/bpmn-adapter/index'
 import { lfJson2Xml } from '../src/bpmn-adapter/json2xml'
 import { lfXml2Json } from '../src/bpmn-adapter/xml2json'
 
@@ -224,4 +224,13 @@ test('transform data from json to xml', () => {
       ],
     },
   })
+})
+
+test('sanitize xml attributes with special characters', () => {
+  const lf = {}
+  const adapter = new BpmnXmlAdapter({ lf })
+  const xml = `<bpmn:userTask name="A&B<C>D" data='x&y<z>w' />`
+  expect(adapter.sanitizeXmlAttributes(xml)).toBe(
+    `<bpmn:userTask name="A&amp;B&lt;C&gt;D" data='x&amp;y&lt;z&gt;w' />`,
+  )
 })
