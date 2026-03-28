@@ -11,6 +11,8 @@ import {
   isSegmentsCrossNode,
   getCrossPointInRect,
   segmentDirection,
+  getBBoxOfPoints,
+  getBytesLength,
 } from '../../src/util/edge'
 
 describe('util/edge', () => {
@@ -220,5 +222,34 @@ describe('util/edge', () => {
         y: 0,
       }),
     ).toEqual('horizontal')
+  })
+  test('getBBoxOfPoints returns correct bounding box', () => {
+    const points = [
+      { x: 1, y: 3 },
+      { x: 5, y: 0 },
+      { x: 2, y: 8 },
+    ]
+    expect(getBBoxOfPoints(points)).toEqual({
+      minX: 1,
+      maxX: 5,
+      minY: 0,
+      maxY: 8,
+      centerX: 3,
+      centerY: 4,
+      x: 3,
+      y: 4,
+      width: 4,
+      height: 8,
+    })
+  })
+  test('getBytesLength measures per-character width correctly', () => {
+    // lowercase ASCII: 1 unit each
+    expect(getBytesLength('abc')).toBe(3)
+    // uppercase ASCII: 1.5 units each
+    expect(getBytesLength('ABC')).toBe(4.5)
+    // mixed: uppercase get 1.5, lowercase get 1
+    expect(getBytesLength('Abc')).toBe(3.5)
+    // empty string
+    expect(getBytesLength('')).toBe(0)
   })
 })

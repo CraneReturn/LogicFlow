@@ -170,16 +170,16 @@ export const getBBoxOfPoints = (
   offset?: number,
   heightOffset?: number,
 ): BoxBounds => {
-  const xList: number[] = []
-  const yList: number[] = []
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
   points.forEach((p) => {
-    xList.push(p.x)
-    yList.push(p.y)
+    if (p.x < minX) minX = p.x
+    if (p.x > maxX) maxX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.y > maxY) maxY = p.y
   })
-  const minX = Math.min(...xList)
-  const maxX = Math.max(...xList)
-  const minY = Math.min(...yList)
-  const maxY = Math.max(...yList)
   let width = maxX - minX
   let height = maxY - minY
   if (offset) {
@@ -431,9 +431,11 @@ export const pathFinder = (
   ot: Point,
 ): Point[] => {
   // 定义已经遍历过的点
-  const closedSet: Point[] = []
+  // Set uses reference equality; all points originate from the shared `points` array,
+  // so this is equivalent to the original Array.indexOf approach.
+  const closedSet = new Set<Point>()
   // 定义需要遍历的店
-  const openSet = [start]
+  const openSet = new Set<Point>([start])
   // 定义节点的上一个节点
   const cameFrom: PolyPointLink = {}
 
@@ -458,7 +460,7 @@ export const pathFinder = (
     }
   })
 
-  while (openSet.length) {
+  while (openSet.size) {
     let current: Point | undefined
     let lowestFScore = Infinity
     openSet.forEach((p: Point) => {
@@ -478,16 +480,16 @@ export const pathFinder = (
       return [start, goal]
     }
 
-    removeClosePointFromOpenList(openSet, current)
-    closedSet.push(current)
+    openSet.delete(current)
+    closedSet.add(current)
 
     getNextNeighborPoints(points, current, sBBox, tBBox).forEach((neighbor) => {
-      if (closedSet.indexOf(neighbor) !== -1) {
+      if (closedSet.has(neighbor)) {
         return
       }
 
-      if (openSet.indexOf(neighbor) === -1) {
-        openSet.push(neighbor)
+      if (!openSet.has(neighbor)) {
+        openSet.add(neighbor)
       }
 
       if (current?.id && neighbor?.id) {
@@ -806,7 +808,7 @@ export const getBytesLength = (word: string): number => {
   let totalLength = 0
   for (let i = 0; i < word.length; i++) {
     const c = word.charCodeAt(i)
-    if (word.match(/[A-Z]/)) {
+    if (c >= 0x0041 && c <= 0x005a) { // uppercase A–Z
       totalLength += 1.5
     } else if ((c >= 0x0001 && c <= 0x007e) || (c >= 0xff60 && c <= 0xff9f)) {
       totalLength += 1
