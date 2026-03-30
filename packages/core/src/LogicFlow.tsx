@@ -1474,6 +1474,11 @@ export namespace LogicFlow {
 
     style?: LogicFlow.CommonTheme
     textStyle?: LogicFlow.CommonTheme
+    /**
+     * 是否隐藏节点锚点（节点级别，优先级高于全局 hideAnchors 配置）
+     * When true, anchors are not rendered for this node even on hover.
+     */
+    hideAnchors?: boolean
 
     [key: string]: any
   }

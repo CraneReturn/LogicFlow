@@ -541,7 +541,7 @@ export abstract class BaseNode<P extends IProps = IProps> extends Component<
           {allowResize && this.getResizeControl()}
           {allowRotate && this.getRotateControl()}
         </g>
-        {!hideAnchors && this.getAnchors()}
+        {!hideAnchors && !model.properties?.hideAnchors && this.getAnchors()}
       </g>
     )
     let nodeShape: h.JSX.Element

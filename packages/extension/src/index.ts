@@ -34,6 +34,9 @@ export * from './components/highlight'
 export * from './materials/curved-edge'
 export * from './materials/node-selection'
 
+// free anchor
+export * from './free-anchor'
+
 /**
  * @deprecated
  * 2.0 版本废弃该插件
