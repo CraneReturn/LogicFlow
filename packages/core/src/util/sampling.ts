@@ -56,9 +56,7 @@ function crossByZ(v: Vector, v1: Vector) {
 }
 
 function dot(v: Vector, w: Vector) {
-  const v1 = [v.x, v.y, v.z]
-  const v2 = [w.x, w.y, w.z]
-  return v2.reduce((prev, cur, index) => prev + cur * v1[index])
+  return v.x * w.x + v.y * w.y + (v.z ?? 0) * (w.z ?? 0)
 }
 
 function angle(v1: Vector, v2: Vector) {

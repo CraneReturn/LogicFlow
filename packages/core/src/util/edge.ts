@@ -170,16 +170,16 @@ export const getBBoxOfPoints = (
   offset?: number,
   heightOffset?: number,
 ): BoxBounds => {
-  const xList: number[] = []
-  const yList: number[] = []
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
   points.forEach((p) => {
-    xList.push(p.x)
-    yList.push(p.y)
+    if (p.x < minX) minX = p.x
+    if (p.x > maxX) maxX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.y > maxY) maxY = p.y
   })
-  const minX = Math.min(...xList)
-  const maxX = Math.max(...xList)
-  const minY = Math.min(...yList)
-  const maxY = Math.max(...yList)
   let width = maxX - minX
   let height = maxY - minY
   if (offset) {
@@ -430,10 +430,12 @@ export const pathFinder = (
   os: Point,
   ot: Point,
 ): Point[] => {
-  // 定义已经遍历过的点
-  const closedSet: Point[] = []
+  // 定义已经遍历过的点（使用 id 作为 key，避免对象引用比较问题）
+  const closedSetIds = new Set<string>()
   // 定义需要遍历的店
   const openSet = [start]
+  const openSetIds = new Set<string>()
+  if (start.id) openSetIds.add(start.id)
   // 定义节点的上一个节点
   const cameFrom: PolyPointLink = {}
 
@@ -479,15 +481,19 @@ export const pathFinder = (
     }
 
     removeClosePointFromOpenList(openSet, current)
-    closedSet.push(current)
+    if (current.id) {
+      openSetIds.delete(current.id)
+      closedSetIds.add(current.id)
+    }
 
     getNextNeighborPoints(points, current, sBBox, tBBox).forEach((neighbor) => {
-      if (closedSet.indexOf(neighbor) !== -1) {
+      if (neighbor.id && closedSetIds.has(neighbor.id)) {
         return
       }
 
-      if (openSet.indexOf(neighbor) === -1) {
+      if (neighbor.id && !openSetIds.has(neighbor.id)) {
         openSet.push(neighbor)
+        openSetIds.add(neighbor.id)
       }
 
       if (current?.id && neighbor?.id) {
@@ -806,7 +812,7 @@ export const getBytesLength = (word: string): number => {
   let totalLength = 0
   for (let i = 0; i < word.length; i++) {
     const c = word.charCodeAt(i)
-    if (word.match(/[A-Z]/)) {
+    if (c >= 0x41 && c <= 0x5a) {
       totalLength += 1.5
     } else if ((c >= 0x0001 && c <= 0x007e) || (c >= 0xff60 && c <= 0xff9f)) {
       totalLength += 1
