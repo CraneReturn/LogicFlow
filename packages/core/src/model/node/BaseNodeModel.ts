@@ -236,6 +236,20 @@ export class BaseNodeModel<P extends PropertiesType = PropertiesType>
   }
 
   /**
+   * @overridable 支持重写
+   * 节点被单击时触发的自定义方法
+   * @param data 节点数据
+   * @param e 鼠标事件对象
+   * @param position 点击位置，包含 domOverlayPosition 和 canvasOverlayPosition
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onClick(
+    _data: NodeData,
+    _e: MouseEvent,
+    _position: LogicFlow.ClientPosition,
+  ): void {}
+
+  /**
    * 设置当前元素的文本模式
    * @param mode
    */

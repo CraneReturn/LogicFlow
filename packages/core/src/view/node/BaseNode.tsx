@@ -407,6 +407,7 @@ export abstract class BaseNode<P extends IProps = IProps> extends Component<
     } else {
       graphModel.eventCenter.emit(EventType.ELEMENT_CLICK, eventOptions)
       graphModel.eventCenter.emit(EventType.NODE_CLICK, eventOptions)
+      model.onClick(nodeData, e, position)
       // 复制粘贴后会出现点击节点时，节点会失去焦点的问题，这里手动让节点获焦以解决这个问题
       const el = e.currentTarget as HTMLElement
       const rAF =
