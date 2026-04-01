@@ -784,19 +784,24 @@ class BpmnXmlAdapter extends BpmnAdapter {
     lf.adapterOut = this.adapterXmlOut
   }
 
-  // 预处理：修复属性值中非法的XML字符（仅针对 name 属性）
+  // 预处理：修复属性值中非法的XML字符（适配单双引号属性）
   /**
-   * 预处理 XML：仅对 name 属性值进行非法字符转义（<, >, &），避免 DOM 解析失败。
-   * 注意：不影响已合法的实体（如 &amp;），仅在属性值中生效，不修改其它内容。
+   * 预处理 XML：对属性值中的非法字符进行转义（<, >, &），避免 DOM 解析失败。
+   * 注意：不影响已合法的实体（如 &amp;），仅在属性值中生效，不修改标签与节点内容。
    */
-  private sanitizeNameAttributes(xml: string): string {
-    return xml.replace(/name="([^"]*)"/g, (_, val) => {
-      const safe = val
-        .replace(/&(?!#?\w+;)/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-      return `name="${safe}"`
-    })
+  private sanitizeXmlAttributes(xml: string): string {
+    return xml.replace(
+      /(\b[\w:-]+\b)=(?:"([^"]*)"|'([^']*)')/g,
+      (_, key, doubleQuotedVal, singleQuotedVal) => {
+        const quote = doubleQuotedVal !== undefined ? '"' : "'"
+        const val = doubleQuotedVal ?? singleQuotedVal ?? ''
+        const safe = val
+          .replace(/&(?!#?\w+;)/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+        return `${key}=${quote}${safe}${quote}`
+      },
+    )
   }
 
   /**
@@ -810,7 +815,7 @@ class BpmnXmlAdapter extends BpmnAdapter {
   adapterXmlIn = (bpmnData) => {
     const xmlStr =
       typeof bpmnData === 'string'
-        ? this.sanitizeNameAttributes(bpmnData)
+        ? this.sanitizeXmlAttributes(bpmnData)
         : bpmnData
     const json = lfXml2Json(xmlStr)
     return this.adapterIn(json)
