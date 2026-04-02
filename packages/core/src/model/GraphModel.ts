@@ -1,6 +1,5 @@
 import {
   assign,
-  find,
   forEach,
   map,
   merge,
@@ -257,10 +256,14 @@ export class GraphModel {
   }
 
   @computed get modelsMap(): GraphModel.ModelsMapType {
-    return [...this.nodes, ...this.edges].reduce((eMap, model) => {
-      eMap[model.id] = model
-      return eMap
-    }, {})
+    const map: GraphModel.ModelsMapType = {}
+    this.nodes.forEach((model) => {
+      map[model.id] = model
+    })
+    this.edges.forEach((model) => {
+      map[model.id] = model
+    })
+    return map
   }
 
   /**
@@ -1205,10 +1208,7 @@ export class GraphModel {
    */
   @action
   updateText(id: string, value: string) {
-    const element = find(
-      [...this.nodes, ...this.edges],
-      (item) => item.id === id,
-    )
+    const element = this.modelsMap[id]
     element?.updateText(value)
   }
 
